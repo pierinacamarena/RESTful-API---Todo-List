@@ -15,14 +15,17 @@ export class UserService {
     //create function
     async createUser(createUserDto: CreateUserDto) : Promise<void>{
         try {
+            const existingUser = await this.User.find({email: createUserDto.email}, {index: 'gs2'});
+            console.log("existing user: ", existingUser);
+            if (existingUser.length > 0) {
+                throw new ConflictException('User already exists');
+            }
             const user = await this.User.create(createUserDto);
             return user;
         } catch (error) {
-            console.log('error.code: ', error.code);
             if (error.code === 'ConditionalCheckFailedException') {
                 throw new ConflictException('User already exists');
             }
-            console.log("ERROR IN USER CREATION");
             throw new BadRequestException(error.message);
         }
     }
@@ -47,6 +50,11 @@ export class UserService {
         }, {index: "primary"});
         if (!user) {
             throw new NotFoundException('User not found');
+        }
+        const existingUser = await this.User.find({email: updateUserDto.email}, {index: 'gs2'});
+   
+        if (existingUser.length > 0) {
+            throw new ConflictException('Email already in use');
         }
         try {
             const updatedUser = this.User.update({ pk: `user#:${id}`, sk: `user#:${id}`, ...updateUserDto });

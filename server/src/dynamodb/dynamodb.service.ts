@@ -15,6 +15,7 @@ const MySchema = {
     indexes: {
         primary:    {hash: 'pk', sort: 'sk'},
         gs1:        {hash: 'gs1pk', sort: 'gs1sk', follow: true},
+        gs2:        {hash: 'email'},
     },
     models: {
         User: {
@@ -60,7 +61,7 @@ export class DynamodbService {
     constructor() {
         this.client = new DynamoDBClient({
             region: 'eu-west-3',
-            endpoint: 'http://localhost:4566',
+            endpoint: 'http://127.0.0.1:4566',
             credentials: {
                 accessKeyId: 'dummy',
                 secretAccessKey: 'dummmy',
@@ -88,6 +89,7 @@ export class DynamodbService {
                     { AttributeName: "sk", AttributeType: "S" },
                     { AttributeName: "gs1pk", AttributeType: "S" },
                     { AttributeName: "gs1sk", AttributeType: "S" },
+                    { AttributeName: "email", AttributeType: "S" },  // new attribute for gsEmail
                 ], 
                 KeySchema: [
                     { AttributeName: "pk", KeyType: "HASH" },
@@ -112,9 +114,23 @@ export class DynamodbService {
                             ReadCapacityUnits: 5,
                             WriteCapacityUnits: 5
                         },
+                    },
+                    {
+                        IndexName: 'gs2',  // new GSI
+                        KeySchema: [
+                            { AttributeName: "email", KeyType: "HASH" },  // new key schema for gsEmail
+                        ],
+                        Projection: {
+                            ProjectionType: "ALL"
+                        },
+                        ProvisionedThroughput: {
+                            ReadCapacityUnits: 5,
+                            WriteCapacityUnits: 5
+                        },
                     }
                 ]
             });
+           
 
             try {
                 const data = await this.client.send(createTableCommand);
