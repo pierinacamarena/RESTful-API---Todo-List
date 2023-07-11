@@ -5,13 +5,14 @@ import { IsEmail, IsString, IsNotEmpty, IsNumber, MinLength } from "class-valida
 
 export class CreateUserDto {
     @IsNotEmpty()
+    @IsString()
     readonly name: string;
   
     @IsNotEmpty()
     @IsEmail()
     readonly email: string;
   
-    // @IsNotEmpty()
-    // @MinLength(8)
-    // readonly password: string;
+    @IsNotEmpty()
+    @MinLength(8)
+    readonly password: string;
   }

@@ -36,8 +36,8 @@ const MySchema = {
             userId:         { type: String, required: true },
             title:          { type: String, required: true },
             description:    { type: String },
-            completed:      { type: Boolean, default: false},
-            inProgress:     { type: Boolean, default: false},
+            completed:      { type: Boolean, default: false} ,
+            inProgress:     { type: Boolean, default: false },
             createdAt:      { type: Date},
             updatedAt:      { type: Date},
 
@@ -61,7 +61,7 @@ export class DynamodbService {
             region: 'eu-west-3',
             endpoint: 'http://localhost:4566'
         });
-        const table = new Table({
+        this.table = new Table({
             client: client,
             name: 'MyTable',
             schema: MySchema,
