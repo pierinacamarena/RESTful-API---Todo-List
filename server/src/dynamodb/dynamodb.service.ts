@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, ListTablesCommand, CreateTableCommand} from '@aws-sdk/client-dynamodb';
 import { Table } from 'dynamodb-onetable'
 
 const Match = {
@@ -13,7 +13,7 @@ const MySchema = {
     format: 'onetable:1.1.0',
     version: '0.0.1',
     indexes: {
-        primary:    {hash: 'pk', sort: 'pk'},
+        primary:    {hash: 'pk', sort: 'sk'},
         gs1:        {hash: 'gs1pk', sort: 'gs1sk', follow: true},
     },
     models: {
@@ -55,17 +55,74 @@ const MySchema = {
 @Injectable()
 export class DynamodbService {
     public readonly table: Table;
+    public readonly client: DynamoDBClient;
 
     constructor() {
-        const client = new DynamoDBClient({
+        this.client = new DynamoDBClient({
             region: 'eu-west-3',
-            endpoint: 'http://localhost:4566'
+            endpoint: 'http://localhost:4566',
+            credentials: {
+                accessKeyId: 'dummy',
+                secretAccessKey: 'dummmy',
+            }
         });
         this.table = new Table({
-            client: client,
+            client: this.client,
             name: 'MyTable',
             schema: MySchema,
             partial: false,
-        })
+        });
+
+        this.createTableIfNotExists();
     }
+
+    private async createTableIfNotExists() {
+        const listTablesCommand = new ListTablesCommand({});
+        const tableList = await this.client.send(listTablesCommand);
+
+        if (!tableList.TableNames.includes('MyTable')) {
+            console.log("creating table");
+            const createTableCommand = new CreateTableCommand({
+                AttributeDefinitions: [
+                    { AttributeName: "pk", AttributeType: "S" },
+                    { AttributeName: "sk", AttributeType: "S" },
+                    { AttributeName: "gs1pk", AttributeType: "S" },
+                    { AttributeName: "gs1sk", AttributeType: "S" },
+                ], 
+                KeySchema: [
+                    { AttributeName: "pk", KeyType: "HASH" },
+                    { AttributeName: "sk", KeyType: "RANGE" },
+                ], 
+                ProvisionedThroughput: {
+                    ReadCapacityUnits: 5, 
+                    WriteCapacityUnits: 5
+                }, 
+                TableName: "MyTable",
+                GlobalSecondaryIndexes: [
+                    {
+                        IndexName: 'gs1',
+                        KeySchema: [
+                            { AttributeName: "gs1pk", KeyType: "HASH" },
+                            { AttributeName: "gs1sk", KeyType: "RANGE" },
+                        ],
+                        Projection: {
+                            ProjectionType: "ALL"
+                        },
+                        ProvisionedThroughput: {
+                            ReadCapacityUnits: 5,
+                            WriteCapacityUnits: 5
+                        },
+                    }
+                ]
+            });
+
+            try {
+                const data = await this.client.send(createTableCommand);
+                console.log(data);
+            } catch (err) {
+                console.log(err, err.stack);
+            }
+        }
+    }
+    
 }

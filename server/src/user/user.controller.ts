@@ -31,6 +31,10 @@ export class UserController {
         await this.userService.deleteUser(id);
         return {message: "User has been deleted"};
     }
-
-
+    
+    @Get()
+    async getUsers() {
+        const users = await this.userService.getUsers();
+        return users;
+    }
 }
