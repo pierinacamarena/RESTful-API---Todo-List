@@ -19,8 +19,8 @@ const MySchema = {
     },
     models: {
         User: {
-            pk:         { type: String, value: 'user#:${id}' },
-            sk:         { type: String, value: 'user#:${id}' },
+            pk:         { type: String, value: 'user:${id}' },
+            sk:         { type: String, value: 'user:' },
             id:         { type: String, generate: 'ulid', validate: Match.ulid },
             name:       { type: String, required: true, validate: Match.name },
             email:      { type: String, required: true, validate: Match.email },
@@ -31,10 +31,10 @@ const MySchema = {
             gs1sk: {type: String, value: 'user#${name}#{id}' }
         },
         Task: {
-            pk:             { type: String, value: 'task#{id}' },
-            sk:             { type: String, value: 'task#{id}' },
-            id:             { type: String, generate: 'ulid', validate: Match.ulid },
-            userId:         { type: String, required: true },
+            pk:             { type: String, value: 'user#:{userId}' },
+            sk:             { type: String, value: 'task#:{id}' },
+            id:             { type: String},
+            userId:         { type: String, required: true},
             title:          { type: String, required: true },
             description:    { type: String },
             completed:      { type: Boolean, default: false} ,

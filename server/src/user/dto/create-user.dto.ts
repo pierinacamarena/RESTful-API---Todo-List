@@ -16,3 +16,6 @@ export class CreateUserDto {
     @MinLength(8)
     readonly password: string;
   }
+
+
+  

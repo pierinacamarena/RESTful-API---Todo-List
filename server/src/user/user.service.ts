@@ -33,8 +33,8 @@ export class UserService {
     //getter
     async getUserbyId(id: string) : Promise<UserDto> {
         const user = await this.User.get({
-            pk: `user#:${id}`,
-            sk: `user#:${id}`
+            pk: `user:${id}`,
+            sk: `user:`
         }, {index: "primary"});
         if (!user) {
             throw new NotFoundException('User not found');
@@ -44,9 +44,9 @@ export class UserService {
 
     //update function
     async modifyUser(id: string, updateUserDto: UpdateUserDto): Promise<UserDto> {
-        const user = this.User.get({
-            pk: `user#:${id}`,
-            sk: `user#:${id}`
+        const user = await this.User.get({
+            pk: `user:${id}`,
+            sk: `user:`
         }, {index: "primary"});
         if (!user) {
             throw new NotFoundException('User not found');
@@ -57,7 +57,7 @@ export class UserService {
             throw new ConflictException('Email already in use');
         }
         try {
-            const updatedUser = this.User.update({ pk: `user#:${id}`, sk: `user#:${id}`, ...updateUserDto });
+            const updatedUser = this.User.update({ pk: `user:${id}`, sk: `user:`, ...updateUserDto });
             return updatedUser;
         } catch (error) {
             throw new BadRequestException(error.message);
@@ -66,20 +66,21 @@ export class UserService {
 
     //delete function
     async deleteUser(id:string) : Promise<void> {
-        const user = this.User.get({
-            pk: `user#:${id}`,
-            sk: `user#:${id}`
+        const user = await this.User.get({
+            pk: `user:${id}`,
+            sk: `user:`
         }, {index: "primary"});
         if (!user) {
             throw new NotFoundException(`User with ID ${id} not found`);
         }
         try {
-            await this.User.remove({ pk: `user#:${id}`, sk: `user#:${id}` });
+            await this.User.remove({ pk: `user:${id}`, sk: `user:` });
         } catch (error) {
             throw new BadRequestException(error.message);
         }
     }
 
+    //Debug
     //getter for all users
     async getUsers() : Promise<UserDto[]> {
         const users = await this.User.scan({});
