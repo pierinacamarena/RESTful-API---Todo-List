@@ -17,8 +17,9 @@ export class UserService {
     async createUser(createUserDto: CreateUserDto) : Promise<void>{
         try {
             const existingUser = await this.User.find({email: createUserDto.email}, {index: 'gs2'});
-            console.log("existing user: ", existingUser);
+            console.log(existingUser); 
             if (existingUser.length > 0) {
+                console.log("there is a user with this email ");
                 throw new ConflictException('User already exists');
             }
             const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
@@ -26,14 +27,16 @@ export class UserService {
             const user = await this.User.create(userDtoWithHashedPassword);
             return user;
         } catch (error) {
-            if (error.code === 'ConditionalCheckFailedException') {
+            console.log("[", error, "]");
+            if (error instanceof ConflictException) {
+                console.log("here");
                 throw new ConflictException('User already exists');
             }
             throw new BadRequestException(error.message);
         }
     }
 
-    //getter
+    //getters
     async getUserbyId(id: string) : Promise<UserDto> {
         const user = await this.User.get({
             pk: `user:${id}`,
@@ -56,11 +59,11 @@ export class UserService {
         }
         const existingUser = await this.User.find({email: updateUserDto.email}, {index: 'gs2'});
    
-        if (existingUser.length > 0) {
+        if (existingUser && existingUser.length > 0) {
             throw new ConflictException('Email already in use');
         }
         try {
-            const updatedUser = this.User.update({ pk: `user:${id}`, sk: `user:`, ...updateUserDto });
+            const updatedUser = await this.User.update({ pk: `user:${id}`, sk: `user:`, ...updateUserDto });
             return updatedUser;
         } catch (error) {
             throw new BadRequestException(error.message);

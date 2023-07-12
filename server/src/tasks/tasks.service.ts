@@ -81,7 +81,7 @@ export class TasksService {
             throw new NotFoundException(`Task with id ${id} not found`);
         }
         try {
-            this.Task.remove({ pk: `user#:${userId}`, sk: `task#:${id}` });
+            await this.Task.remove({ pk: `user#:${userId}`, sk: `task#:${id}` });
         } catch (error) {
             throw new BadRequestException(error.message);
         }
