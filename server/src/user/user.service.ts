@@ -13,13 +13,11 @@ export class UserService {
         this.User = this.dynamoService.table.getModel('User');
     }
 
-    //create function
     async createUser(createUserDto: CreateUserDto) : Promise<void>{
         try {
             const existingUser = await this.User.find({email: createUserDto.email}, {index: 'gs2'});
             console.log(existingUser); 
             if (existingUser.length > 0) {
-                console.log("there is a user with this email ");
                 throw new ConflictException('User already exists');
             }
             const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
@@ -27,7 +25,6 @@ export class UserService {
             const user = await this.User.create(userDtoWithHashedPassword);
             return user;
         } catch (error) {
-            console.log("[", error, "]");
             if (error instanceof ConflictException) {
                 console.log("here");
                 throw new ConflictException('User already exists');
@@ -36,7 +33,6 @@ export class UserService {
         }
     }
 
-    //getters
     async getUserbyId(id: string) : Promise<UserDto> {
         const user = await this.User.get({
             pk: `user:${id}`,
@@ -48,7 +44,6 @@ export class UserService {
         return user;
     }
 
-    //update function
     async modifyUser(id: string, updateUserDto: UpdateUserDto): Promise<UserDto> {
         const user = await this.User.get({
             pk: `user:${id}`,
@@ -70,7 +65,6 @@ export class UserService {
         }
     }
 
-    //delete function
     async deleteUser(id:string) : Promise<void> {
         const user = await this.User.get({
             pk: `user:${id}`,

@@ -9,7 +9,6 @@ import { TasksModule } from 'src/tasks/tasks.module';
     controllers: [UserController],
     imports: [
         DynamodbModule,
-        // TasksModule,
     ],
     exports: [UserService],
 })
