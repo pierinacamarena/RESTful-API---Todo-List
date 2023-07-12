@@ -1,18 +1,24 @@
-// import { Test, TestingModule } from '@nestjs/testing';
-// import { TasksService } from './tasks.service';
+import { Test, TestingModule } from '@nestjs/testing';
+import { TasksService } from './tasks.service';
+import { DynamodbService } from 'src/dynamodb/dynamodb.service';
 
-// describe('TasksService', () => {
-//   let service: TasksService;
 
-//   beforeEach(async () => {
-//     const module: TestingModule = await Test.createTestingModule({
-//       providers: [TasksService],
-//     }).compile();
+describe('TasksService', () => {
+  let service: TasksService;
+  let dynamoService: DynamodbService;
 
-//     service = module.get<TasksService>(TasksService);
-//   });
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [TasksService, DynamodbService],
+    }).compile();
 
-//   it('should be defined', () => {
-//     expect(service).toBeDefined();
-//   });
-// });
+    service = module.get<TasksService>(TasksService);
+    dynamoService = module.get<DynamodbService>(DynamodbService);
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+
+  
+});

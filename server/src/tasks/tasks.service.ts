@@ -4,19 +4,23 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { TaskDto } from './dto/task.dto';
 import { Logger } from '@nestjs/common';
+import { UserService } from 'src/user/user.service';
 
 
 @Injectable()
 export class TasksService {
     private readonly Task: any;
 
-    constructor ( private readonly dynamoservice: DynamodbService) {
-        this.Task = this.dynamoservice.table.getModel('Task');
-    }
+    constructor (
+        private readonly dynamoservice: DynamodbService,
+        private readonly userService: UserService
+        ) 
+        {this.Task = this.dynamoservice.table.getModel('Task');}
 
     async createTask(createTaskDto: CreateTaskDto) : Promise<void> {
         const logger = new Logger('TasksService'); // Create a logger instance
-        try {        
+        try {
+            await this.userService.getUserbyId(createTaskDto.userId);
             const task = await this.Task.create(createTaskDto);    
             return task;
         } catch (error) {

@@ -23,19 +23,23 @@ describe('UserService', () => {
 
   describe('createUser', () => {
     it('should throw a conflict exception if the user exists', async () => {
-      jest.spyOn(dynamoService.table, 'getModel').mockImplementation(() => ({
-        find: () => Promise.resolve([{ id: '1', email: 'test@test.com' }]),
-        create: jest.fn().mockReturnValue(Promise.resolve(null)),
-        get: jest.fn().mockReturnValue(Promise.resolve(null)),
-        load: jest.fn().mockReturnValue(Promise.resolve([])),
-        init: jest.fn().mockReturnValue(Promise.resolve()),
-        update: jest.fn().mockReturnValue(Promise.resolve(null)),
-        remove: jest.fn().mockReturnValue(Promise.resolve()),
-        scan: jest.fn().mockReturnValue(Promise.resolve([])),
-        upsert: jest.fn().mockReturnValue(Promise.resolve(null)),
-        check: jest.fn().mockReturnValue(Promise.resolve(null)),
-        // Add all other methods as needed...
-      }));
+      // jest.spyOn(dynamoService.table, 'getModel').mockImplementation(() => () => ({
+      //   find: () => Promise.resolve([{ id: '1', email: 'test@test.com' }]),
+      //   create: jest.fn().mockReturnValue(Promise.resolve(null)),
+      // }));
+      // jest.spyOn(dynamoService.table, 'getModel').mockImplementation(() => ({
+      //   find: () => Promise.resolve([{ id: '1', email: 'test@test.com' }]),
+      //   create: jest.fn().mockReturnValue(Promise.resolve(null)),
+      //   get: jest.fn().mockReturnValue(Promise.resolve(null)),
+      //   load: jest.fn().mockReturnValue(Promise.resolve([])),
+      //   init: jest.fn().mockReturnValue(Promise.resolve()),
+      //   update: jest.fn().mockReturnValue(Promise.resolve(null)),
+      //   remove: jest.fn().mockReturnValue(Promise.resolve()),
+      //   scan: jest.fn().mockReturnValue(Promise.resolve([])),
+      //   upsert: jest.fn().mockReturnValue(Promise.resolve(null)),
+      //   check: jest.fn().mockReturnValue(Promise.resolve(null)),
+      //   // Add all other methods as needed...
+      // }));
 
       await expect(
         service.createUser({ name: 'Test User', email: 'test@test.com', password: 'testPassword' }),
@@ -64,5 +68,5 @@ describe('UserService', () => {
     });
 
     // More tests for getUserbyId...
-});
+    });
 });
