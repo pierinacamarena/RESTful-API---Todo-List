@@ -3,6 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { DynamodbService } from '../dynamodb/dynamodb.service';
 import { UserDto } from './dto/user.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -20,7 +21,9 @@ export class UserService {
             if (existingUser.length > 0) {
                 throw new ConflictException('User already exists');
             }
-            const user = await this.User.create(createUserDto);
+            const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+            const userDtoWithHashedPassword = { ...createUserDto, password: hashedPassword };
+            const user = await this.User.create(userDtoWithHashedPassword);
             return user;
         } catch (error) {
             if (error.code === 'ConditionalCheckFailedException') {
