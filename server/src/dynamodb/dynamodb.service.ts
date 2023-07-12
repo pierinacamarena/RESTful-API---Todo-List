@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DynamoDBClient, ListTablesCommand, CreateTableCommand} from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, ListTablesCommand, CreateTableCommand, DescribeTableCommand} from '@aws-sdk/client-dynamodb';
 import { Table } from 'dynamodb-onetable'
 
 const Match = {
@@ -13,9 +13,10 @@ const MySchema = {
     format: 'onetable:1.1.0',
     version: '0.0.1',
     indexes: {
-        primary:    {hash: 'pk', sort: 'sk'},
-        gs1:        {hash: 'gs1pk', sort: 'gs1sk', follow: true},
-        gs2:        {hash: 'email'},
+        primary:        {hash: 'pk', sort: 'sk'},
+        gs1:            {hash: 'gs1pk', sort: 'gs1sk', follow: true},
+        gs2:            {hash: 'email'},
+        gsUserTasks:    {hash: 'userId'}
     },
     models: {
         User: {
@@ -44,7 +45,8 @@ const MySchema = {
 
             //Search by task name or by type
             gs1pk:          { type: String, value: 'task#'},
-            gs1sk:          { type: String, value: 'task#${title}'}
+            gs1sk:          { type: String, value: 'task#${title}'},
+            gsUserTasks:    { type: String, value: 'user#${userId}'},
         },
     },
     params: {
@@ -89,7 +91,8 @@ export class DynamodbService {
                     { AttributeName: "sk", AttributeType: "S" },
                     { AttributeName: "gs1pk", AttributeType: "S" },
                     { AttributeName: "gs1sk", AttributeType: "S" },
-                    { AttributeName: "email", AttributeType: "S" },  // new attribute for gsEmail
+                    { AttributeName: "email", AttributeType: "S" },
+                    { AttributeName: "userId", AttributeType: "S" },
                 ], 
                 KeySchema: [
                     { AttributeName: "pk", KeyType: "HASH" },
@@ -127,10 +130,22 @@ export class DynamodbService {
                             ReadCapacityUnits: 5,
                             WriteCapacityUnits: 5
                         },
+                    },
+                    {
+                        IndexName: 'gsUserTasks',  // new GSI
+                        KeySchema: [
+                            { AttributeName: "userId", KeyType: "HASH" },  // new key schema for gsUserTasks
+                        ],
+                        Projection: {
+                            ProjectionType: "ALL"
+                        },
+                        ProvisionedThroughput: {
+                            ReadCapacityUnits: 5,
+                            WriteCapacityUnits: 5
+                        },
                     }
                 ]
             });
-           
 
             try {
                 const data = await this.client.send(createTableCommand);
@@ -140,5 +155,21 @@ export class DynamodbService {
             }
         }
     }
-    
 }
+
+
+        // Describe the table to get its details, including global secondary indexes
+        // const describeTableCommand = new DescribeTableCommand({
+        //     TableName: "MyTable",
+        //     });
+        //     const describeTableResponse = await this.client.send(describeTableCommand);
+        //     console.log("Table description:", describeTableResponse.Table);
+        
+        //     // Check if the `gsUserTasks` global secondary index exists
+        //     const globalSecondaryIndexes = describeTableResponse.Table.GlobalSecondaryIndexes;
+        //     const indexExists = globalSecondaryIndexes.some((index) => index.IndexName === "gsUserTasks");
+        //     if (indexExists) {
+        //     console.log("gsUserTasks index exists");
+        //     } else {
+        //     console.log("gsUserTasks index does not exist");
+        //     }

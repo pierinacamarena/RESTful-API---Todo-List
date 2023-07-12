@@ -12,24 +12,29 @@ export class TasksController {
 
     @Post()
     async createTask(@Body() createTaskDto: CreateTaskDto) {
-    if (!createTaskDto.id) {
-        createTaskDto.id = uuidv4();   // If id was not provided, generate a UUID.
+        if (!createTaskDto.id) {
+            createTaskDto.id = uuidv4();
+        }
+        const pk = 'user#:' + createTaskDto.userId;
+        const sk = 'task#:' + createTaskDto.id;
+        createTaskDto.pk = pk;
+        createTaskDto.sk = sk;
+        const task = await this.tasksService.createTask(createTaskDto);
+        return task;
     }
 
-    // Compute pk and sk manually
-    const pk = 'user#:' + createTaskDto.userId;
-    const sk = 'task#:' + createTaskDto.id;
-
-    // Add pk and sk to DTO
-    createTaskDto.pk = pk;
-    createTaskDto.sk = sk;
-
-    const task = await this.tasksService.createTask(createTaskDto);
-    return task;
-}
+    @Get('user/:userId')
+    async getTasksByUser(@Param('userId') userId: string) {
+        console.log("nani");
+        const tasks = await this.tasksService.getTasksbyUser(userId);
+        console.log("tasksperUser: [", tasks, "]");
+        return tasks;
+    }
 
     @Get(':userId/:id')
     async getTask(@Param('id') id: string, @Param('userId') userId: string) {
+        console.log("id: ", id);
+        console.log("userid: ", userId);
         const task = await this.tasksService.getTaskbyId(id, userId);
         return task;
     }
@@ -44,12 +49,6 @@ export class TasksController {
     async deleteTask(@Param('id') id: string, @Param('userId') userId: string) {
         await this.tasksService.deleteTask(id, userId);
         return {message: "Task has been deleted"};
-    }
-
-    @Get('user/:userId')
-    async getTasksByUser(@Param('userId') userId: string) {
-        const tasks =  this.tasksService.getTasksbyUser(userId);
-        return tasks;
     }
 
     //Debug

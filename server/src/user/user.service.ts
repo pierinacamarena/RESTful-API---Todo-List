@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { DynamodbService } from 'src/dynamodb/dynamodb.service';
+import { DynamodbService } from '../dynamodb/dynamodb.service';
 import { UserDto } from './dto/user.dto';
 
 @Injectable()
