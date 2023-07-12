@@ -1,5 +1,10 @@
 # RESTful-API---Todo-List
-The project involves creating a RESTful API that will allow a user to manage a task list..
+The project involves creating a RESTful API that will allow a user to manage a task list
+
+Tech StacK:
+  -Backend Framework: Nest (https://nestjs.com/)
+  -Plugin: OneTable: https://doc.onetable.io/
+  -Database: DynamoDB: https://aws.amazon.com/dynamodb/
 
 This project allows to manage a todo list, create a user, verifies if another user with the same email exist to avoid duplicate,
 this was done with the intention of setting up an authentication system later, 
