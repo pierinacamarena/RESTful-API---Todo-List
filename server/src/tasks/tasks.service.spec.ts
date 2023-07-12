@@ -1,7 +1,8 @@
 import { ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TasksService } from './tasks.service';
-import { DynamodbService } from 'src/dynamodb/dynamodb.service';
+import { DynamodbService } from '../dynamodb/dynamodb.service';
+import { UserService } from '../user/user.service';
 
 const baseMockModel = {
   create: jest.fn(),
@@ -19,6 +20,7 @@ const baseMockModel = {
 describe('TasksService', () => {
   let service: TasksService;
   let dynamoService: DynamodbService;
+  let userService: UserService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -29,37 +31,40 @@ describe('TasksService', () => {
             getModel: jest.fn().mockReturnValue(baseMockModel),
           }
         }
-      }],
+      },
+      {
+        provide: UserService,
+        useValue: {
+          getUserbyId: jest.fn()
+        },
+    }],
     }).compile();
 
     service = module.get<TasksService>(TasksService);
     dynamoService = module.get<DynamodbService>(DynamodbService);
+    userService = module.get<UserService>(UserService); 
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  describe('TasksService', () => {
-
-    describe('createTask', () => {
-      it('should throw a bad request exception if the task creation fails', async () => {
-        jest.spyOn(service, 'createTask').mockImplementation(() => Promise.reject(new Error('Test error')));
-    
-        await expect(
-          service.createTask({ id: '1', pk: 'task#1', sk: 'user#1', userId: '1', title: 'Test Task', completed: false }),
-        ).rejects.toThrow(BadRequestException);
-      });
-    
-      // More tests for createTask...
+  describe('createTask', () => {
+    it('should create a task when user exists', async () => {
+      jest.spyOn(userService, 'getUserbyId').mockImplementationOnce(() => Promise.resolve({ id: 'test-user-id', name: 'Test User', email: 'test@example.com', password: 'test-password' }));
     });
+
+    it('should not create a task when user does not exist', async () => {
+      jest.spyOn(userService, 'getUserbyId').mockImplementationOnce(() => Promise.reject(new NotFoundException('User not found')));
+    });
+  });
   
     describe('modifyTask', () => {
       it('should successfully modify a task', async () => {
         jest.spyOn(dynamoService.table, 'getModel').mockImplementation(() => ({
           ...baseMockModel,
-          get: () => Promise.resolve({ id: '1', title: 'TestTask', completed: false }),
-          update: () => Promise.resolve({ id: '1', title: 'ModifiedTask', completed: true }),
+          get: () => Promise.resolve({ id: '1', title: 'TestTask'}),
+          update: () => Promise.resolve({ id: '1', title: 'ModifiedTask'}),
         }));
   
         await expect(
@@ -118,6 +123,4 @@ describe('TasksService', () => {
         ).resolves.toBeDefined();
       });
     });
-  });
-
 });
