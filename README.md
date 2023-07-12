@@ -27,7 +27,7 @@ the user password is hashed for security<br />
 <br />
 The most challenging part of this project was handling the database dynamodb, a nosql database by amazon<br />
 <br />
-##To start the program <br />
+## To start the program <br />
 docker-compose-up to start the database<br />
 npm run start:dev to start the backend server<br />
 it will automatically connect to the database and create the table is it has not been created<br />
