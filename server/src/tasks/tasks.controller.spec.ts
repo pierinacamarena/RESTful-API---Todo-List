@@ -20,6 +20,11 @@ beforeEach(async () => {
         provide: TasksService,
         useValue: {
           createTask: jest.fn(),
+          getAllTasks: jest.fn(),
+          deleteTask: jest.fn(),
+          getTasksbyUser: jest.fn(),
+          getTaskbyId: jest.fn(),
+          modifyTask: jest.fn(),
         },
       },
     ],
