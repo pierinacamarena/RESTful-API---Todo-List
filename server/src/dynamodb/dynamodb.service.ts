@@ -2,6 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { DynamoDBClient, ListTablesCommand, CreateTableCommand, DescribeTableCommand} from '@aws-sdk/client-dynamodb';
 import { Table } from 'dynamodb-onetable'
 
+
+/**
+ * Regex patterns for validation
+ * @type {{ulid: RegExp, email: RegExp, name: RegExp, password: RegExp}}
+ */
 const Match = {
     ulid: /^[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}$/,
     email: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
@@ -9,6 +14,9 @@ const Match = {
     password: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
 }
 
+/**
+ * Define schema for the table
+ */
 const MySchema = {
     format: 'onetable:1.1.0',
     version: '0.0.1',
@@ -60,6 +68,10 @@ export class DynamodbService {
     public readonly table: Table;
     public readonly client: DynamoDBClient;
 
+    /**
+     * Configuration and table definition
+     */
+
     constructor() {
         this.client = new DynamoDBClient({
             region: 'eu-west-3',
@@ -79,6 +91,9 @@ export class DynamodbService {
         this.createTableIfNotExists();
     }
 
+    /**
+     * Creates a new DynamoDB table if it doesn't exist.
+     */
     private async createTableIfNotExists() {
         const listTablesCommand = new ListTablesCommand({});
         const tableList = await this.client.send(listTablesCommand);
@@ -119,9 +134,9 @@ export class DynamodbService {
                         },
                     },
                     {
-                        IndexName: 'gs2',  // new GSI
+                        IndexName: 'gs2', 
                         KeySchema: [
-                            { AttributeName: "email", KeyType: "HASH" },  // new key schema for gsEmail
+                            { AttributeName: "email", KeyType: "HASH" }, 
                         ],
                         Projection: {
                             ProjectionType: "ALL"
@@ -132,9 +147,9 @@ export class DynamodbService {
                         },
                     },
                     {
-                        IndexName: 'gsUserTasks',  // new GSI
+                        IndexName: 'gsUserTasks', 
                         KeySchema: [
-                            { AttributeName: "userId", KeyType: "HASH" },  // new key schema for gsUserTasks
+                            { AttributeName: "userId", KeyType: "HASH" },  
                         ],
                         Projection: {
                             ProjectionType: "ALL"
@@ -156,20 +171,3 @@ export class DynamodbService {
         }
     }
 }
-
-
-        // Describe the table to get its details, including global secondary indexes
-        // const describeTableCommand = new DescribeTableCommand({
-        //     TableName: "MyTable",
-        //     });
-        //     const describeTableResponse = await this.client.send(describeTableCommand);
-        //     console.log("Table description:", describeTableResponse.Table);
-        
-        //     // Check if the `gsUserTasks` global secondary index exists
-        //     const globalSecondaryIndexes = describeTableResponse.Table.GlobalSecondaryIndexes;
-        //     const indexExists = globalSecondaryIndexes.some((index) => index.IndexName === "gsUserTasks");
-        //     if (indexExists) {
-        //     console.log("gsUserTasks index exists");
-        //     } else {
-        //     console.log("gsUserTasks index does not exist");
-        //     }
