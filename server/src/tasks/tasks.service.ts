@@ -10,7 +10,6 @@ import { UserService } from '../user/user.service';
 @Injectable()
 export class TasksService {
     private readonly Task: any;
-
     constructor (
         private readonly dynamoservice: DynamodbService,
         private readonly userService: UserService

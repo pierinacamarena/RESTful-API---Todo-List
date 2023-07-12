@@ -3,7 +3,7 @@ import { UserService } from './user.service';
 import { DynamodbService } from '../dynamodb/dynamodb.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserDto } from './dto/user.dto';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 
 const baseMockModel = {
   create: jest.fn(),
@@ -24,7 +24,9 @@ describe('UserService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UserService, {
+      providers: [UserService,
+        DynamodbService,
+        {
         provide: DynamodbService,
         useValue: {
           table: {
@@ -43,26 +45,25 @@ describe('UserService', () => {
     expect(service).toBeDefined();
   });
 
-  // describe('createUser', () => {
-  //   it('should throw a conflict exception if the user exists', async () => {
-  //     jest.spyOn(dynamoService.table, 'getModel').mockImplementation(() => ({
-  //       ...baseMockModel,
-  //       find: () => Promise.resolve([{ id: '1', email: 'test@test.com' }]),
-  //     }));
+  describe('createUser', () => {
+    it('should throw a conflict exception if the user exists', async () => {
+      jest.spyOn(dynamoService.table, 'getModel').mockImplementation(() => ({
+        ...baseMockModel,
+        find: () => Promise.resolve([{ id: '1', email: 'test@test.com' }]),
+      }));
 
-  //     await expect(
-  //       service.createUser({ name: 'TestUser', email: 'test@test.com', password: 'testPassword' }),
-  //     ).rejects.toThrow(ConflictException);
-  //   });
+      await expect(
+        service.createUser({ name: 'TestUser', email: 'test@test.com', password: 'testPassword' }),
+      ).rejects.toThrow(BadRequestException);
+    });
 
-  //   // More tests for createUser...
-  // });
+  });
 
   describe('getUserbyId', () => {
     it('should throw a NotFoundException if user is not found', async () => {
       jest.spyOn(dynamoService.table, 'getModel').mockImplementation(() => ({
         ...baseMockModel,
-        find: jest.fn().mockReturnValue(Promise.resolve([])),  // Override the find method
+        find: jest.fn().mockReturnValue(Promise.resolve([])), 
       }));
   
       await expect(service.getUserbyId('1')).rejects.toThrow(NotFoundException);
@@ -73,7 +74,7 @@ describe('UserService', () => {
     it('should throw a NotFoundException if user is not found', async () => {
       jest.spyOn(dynamoService.table, 'getModel').mockImplementation(() => ({
         ...baseMockModel,
-        get: jest.fn().mockReturnValue(Promise.resolve(null)),  // Override the find method
+        get: jest.fn().mockReturnValue(Promise.resolve(null)), 
       }));
 
       const mockUpdateUserDto: UpdateUserDto = {
@@ -83,16 +84,14 @@ describe('UserService', () => {
       };
   
       await expect(service.modifyUser('1', mockUpdateUserDto)).rejects.toThrow(NotFoundException);
-      // await expect(service.modifyUser('1', {})).rejects.toThrow(NotFoundException);
     });
   });
   
-
   describe('deleteUser', () => {
     it('should throw a NotFoundException if user is not found', async () => {
       jest.spyOn(dynamoService.table, 'getModel').mockImplementation(() => ({
         ...baseMockModel,
-        get: jest.fn().mockReturnValue(Promise.resolve(null)),  // Override the find method
+        get: jest.fn().mockReturnValue(Promise.resolve(null)), 
       }));
   
       await expect(service.deleteUser('1')).rejects.toThrow(NotFoundException);
@@ -105,13 +104,11 @@ describe('UserService', () => {
 
       jest.spyOn(dynamoService.table, 'getModel').mockImplementation(() => ({
         ...baseMockModel,
-        scan: jest.fn().mockReturnValue(Promise.resolve(mockUsers)),  // Override the find method
+        scan: jest.fn().mockReturnValue(Promise.resolve(mockUsers)),  
       }));
   
       await expect(service.getUsers()).rejects.toThrow(NotFoundException);
     });
   });
 
-
-    // More tests for getUserbyId...
 });

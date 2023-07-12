@@ -24,14 +24,16 @@ describe('TasksService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [TasksService, {
-        provide: DynamodbService,
-        useValue: {
-          table: {
-            getModel: jest.fn().mockReturnValue(baseMockModel),
-          }
-        }
-      },
+      providers: [TasksService,
+        DynamodbService,
+      //   {
+      //   provide: DynamodbService,
+      //   useValue: {
+      //     table: {
+      //       getModel: jest.fn().mockReturnValue(baseMockModel),
+      //     }
+      //   }
+      // },
       {
         provide: UserService,
         useValue: {
@@ -58,20 +60,81 @@ describe('TasksService', () => {
       jest.spyOn(userService, 'getUserbyId').mockImplementationOnce(() => Promise.reject(new NotFoundException('User not found')));
     });
   });
+
+  describe('modifyTask', () => {
+
+    
+    let getSpy: jest.SpyInstance;
+    let updateSpy: jest.SpyInstance;
   
-    describe('modifyTask', () => {
-      it('should successfully modify a task', async () => {
-        jest.spyOn(dynamoService.table, 'getModel').mockImplementation(() => ({
-          ...baseMockModel,
-          get: () => Promise.resolve({ id: '1', title: 'TestTask'}),
-          update: () => Promise.resolve({ id: '1', title: 'ModifiedTask'}),
-        }));
+    beforeEach(() => {
+      // Set up spies
+      // getSpy = jest.spyOn(service.Task, 'get').mockResolvedValue({ id: '1', title: 'TestTask'});
+      // updateSpy = jest.spyOn(service.Task, 'update').mockResolvedValue({ id: '1', title: 'ModifiedTask'});
+    });
   
-        await expect(
-          service.modifyTask('1', { title: 'ModifiedTask', completed: true }, '1'),
-        ).resolves.toBeDefined();
+    afterEach(() => {
+      // Clear all mocks after each test
+      jest.clearAllMocks();
+    });
+  
+    it('should successfully modify a task', async () => {
+      await expect(service.modifyTask('1', { title: 'ModifiedTask', completed: true }, '1')).resolves.toBeDefined();
+      
+      // Check that the service methods were called
+      expect(getSpy).toHaveBeenCalledWith({
+        pk: `user#:${'1'}`,
+        sk: `task#:${'1'}`
+      }, {index: "primary"});
+  
+      expect(updateSpy).toHaveBeenCalledWith({
+        pk: `user#:${'1'}`,
+        sk: `task#:${'1'}`,
+        ...{ title: 'ModifiedTask', completed: true }
       });
     });
+  });
+  
+  // describe('modifyTask', () => {
+  //   it('should successfully modify a task', async () => {
+  //     const mockTask = {
+  //       get: jest.fn().mockResolvedValue({ id: '1', title: 'TestTask'}),
+  //       update: jest.fn().mockResolvedValue({ id: '1', title: 'ModifiedTask'}),
+  //     };
+        
+  //     // Explicitly set the mocked service methods
+  //     // service.Task = mockTask;
+  //     Reflect.set(service, 'Task', mockTask);
+      
+  //     await expect(service.modifyTask('1', { title: 'ModifiedTask', completed: true }, '1')).resolves.toBeDefined();
+      
+  //     // Check that the service methods were called
+  //     expect(mockTask.get).toHaveBeenCalledWith({
+  //       pk: `user#:${'1'}`,
+  //       sk: `task#:${'1'}`
+  //     }, {index: "primary"});
+  
+  //     expect(mockTask.update).toHaveBeenCalledWith({
+  //       pk: `user#:${'1'}`,
+  //       sk: `task#:${'1'}`,
+  //       ...{ title: 'ModifiedTask', completed: true }
+  //     });
+  //   });
+  // });
+  
+    // describe('modifyTask', () => {
+    //   it('should successfully modify a task', async () => {
+    //     jest.spyOn(dynamoService.table, 'getModel').mockImplementation(() => ({
+    //       ...baseMockModel,
+    //       get: () => Promise.resolve({ id: '1', title: 'TestTask'}),
+    //       update: () => Promise.resolve({ id: '1', title: 'ModifiedTask'}),
+    //     }));
+  
+    //     await expect(
+    //       service.modifyTask('1', { title: 'ModifiedTask', completed: true }, '1'),
+    //     ).resolves.toBeDefined();
+    //   });
+    // });
   
     describe('getTaskbyId', () => {
       it('should successfully return a task by ID', async () => {
@@ -108,7 +171,6 @@ describe('TasksService', () => {
         ).rejects.toThrow(BadRequestException);
       });
     
-      // More tests for deleteTask...
     });
   
     describe('getAllTasks', () => {
